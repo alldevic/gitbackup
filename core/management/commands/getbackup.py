@@ -15,6 +15,9 @@ class Command(BaseCommand):
         start_date = timezone.now()
         repos = Repo.objects.all()
 
+        working_dir = "tmp"
+        subprocess.run(["mkdir", working_dir])
+
         # git clone --mirror git@some.origin/reponame reponame.git
         # cd reponame.git
         # git bundle create reponame.bundle --all
@@ -25,18 +28,18 @@ class Command(BaseCommand):
             repo_name = f"{repo.name}.git"
             repo_bundle = f"{repo.name}.bundle"
             subprocess.run(["git", "clone", "--mirror",
-                            f'{repo.url}', f"{repo_name}"])
-            # tmp = subprocess.run(["ls", "-la"])
-            # self.stdout.write(self.style.SUCCESS(tmp.stdout))
-            # subprocess.run(["cd", f"{repo_name}"])
-            subprocess.run(["git", "bundle", "create",
-                            f'{repo_bundle}', "--all"])
-            subprocess.run(["cp", f'{repo_bundle}', "/app/media/"])
-            # subprocess.run(["cd", ".."])
-            subprocess.run(["rm", "-rf", f"{repo_name}"])
-            f = File(open(f'/app/media/{repo_bundle}', 'rb'))
-            Backup.objects.create(repo=repo,
-                                  file=f)
+                            "git@github.com:alldevic/nav_info.git", repo_name],
+                           cwd=f"./{working_dir}")
+            subprocess.run(["git", "bundle", "create", repo_bundle, "--all"],
+                           cwd=f"./{working_dir}/{repo_name}")
+            subprocess.run(["cp", repo_bundle, ".."],
+                           cwd=f"./{working_dir}/{repo_name}")
+            subprocess.run(["rm", "-rf", f"./{repo_name}"],
+                           cwd=f"./{working_dir}")
+            f = File(open(f'/app/{working_dir}/{repo_bundle}', 'rb'))
+            Backup.objects.create(repo=repo, file=f)
+
+        subprocess.run(["rm", "-rf", working_dir])
         if repos:
             TaskModel.objects.create(
                 taskname="getcontainers",
