@@ -1,10 +1,11 @@
 from django.contrib import admin
 
 from core.models import (Repo, TaskModel, Backup)
+from import_export.admin import ImportExportActionModelAdmin
 
 
 @admin.register(Repo)
-class RepoAdmin(admin.ModelAdmin):
+class RepoAdmin(ImportExportActionModelAdmin):
     list_display = ('name', 'url', 'private')
     search_fields = ('name',)
 

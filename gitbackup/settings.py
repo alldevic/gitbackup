@@ -33,6 +33,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'django_q',
+    'import_export',
 ]
 
 LOCAL_APPS = [
