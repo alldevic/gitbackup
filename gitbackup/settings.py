@@ -1,8 +1,6 @@
 from os import environ
 from pathlib import Path
 
-from django.urls import reverse_lazy
-
 
 def get_env(key, default=None):
     val = environ.get(key, default)
