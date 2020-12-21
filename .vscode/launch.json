@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django Docker",
+            "type": "python",
+            "request": "attach",
+            "port": 5678,
+            "host": "172.16.0.5",
+            "django": true,
+            "preLaunchTask": "make upd",
+            "postDebugTask": "make down",
+            "showReturnValue": true,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ]
+        },
+    ]
+}
