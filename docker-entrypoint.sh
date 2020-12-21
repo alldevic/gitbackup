@@ -54,6 +54,9 @@ python3 manage.py migrate
 echo >&2 "Collect static..."
 python3 manage.py collectstatic --noinput
 
+echo >&2 "Init schedule tassk"
+python3 manage.py inittasks
+
 if [[ ${DEBUGPY} == 'TRUE' ]] || [[ ${DEBUGPY} == 'True' ]] || [[ ${DEBUGPY} == '1' ]]; then
     wait
 elif [[ ${DEBUG} == 'TRUE' ]] || [[ ${DEBUG} == 'True' ]] || [[ ${DEBUG} == '1' ]]; then

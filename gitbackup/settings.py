@@ -35,7 +35,9 @@ THIRD_PARTY_APPS = [
     'django_q',
 ]
 
-LOCAL_APPS = []
+LOCAL_APPS = [
+    'core'
+]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
