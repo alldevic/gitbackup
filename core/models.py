@@ -44,7 +44,8 @@ class TaskModel(models.Model):
     taskname = models.CharField("taskname", max_length=50)
 
     def __str__(self) -> str:
-        return f"{self.taskname} - {self.lastrunned}"
+        format = "%Y/%m/%d %H:%M:%S"
+        return f"{self.taskname} - {self.lastrunned.strftime(format)}"
 
     class Meta:
         verbose_name = "запуск"
