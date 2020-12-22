@@ -21,6 +21,13 @@ class Command(BaseCommand):
         # git clone --mirror git@some.origin/reponame reponame.git
         # tar -czf reponame.tar.gz reponame.git
         # rm -rf reponame.git
+
+        if repos:
+            task = TaskModel.objects.create(
+                taskname="getcontainers",
+                lastrunned=start_date
+            )
+
         for repo in repos:
             repo_name = f"{repo.name}.git"
             repo_bundle = f"{repo.name}.tar.gz"
@@ -31,14 +38,9 @@ class Command(BaseCommand):
             subprocess.run(["rm", "-rf", f"./{repo_name}"],
                            cwd=f"./{working_dir}")
             f = File(open(f'/app/{working_dir}/{repo_bundle}', 'rb'))
-            Backup.objects.create(repo=repo, file=f)
+            Backup.objects.create(repo=repo, file=f, task=task)
 
         subprocess.run(["rm", "-rf", working_dir])
-        if repos:
-            TaskModel.objects.create(
-                taskname="getcontainers",
-                lastrunned=start_date
-            )
 
         elapsed = time.time()
         self.stdout.write(self.style.SUCCESS(
