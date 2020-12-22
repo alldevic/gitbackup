@@ -138,3 +138,5 @@ Q_CLUSTER = {
     'ack_failures': True,
     'orm': 'default'
 }
+
+MINUTES = get_env('MINUTES', 360)
