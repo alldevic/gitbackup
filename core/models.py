@@ -31,6 +31,7 @@ class Backup(models.Model):
     repo = models.ForeignKey("Repo", on_delete=models.DO_NOTHING)
     file = models.FileField("backup", upload_to=get_file_path)
     created = models.DateTimeField("created", auto_now_add=True)
+    task = models.ForeignKey("TaskModel", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "бэкап"
@@ -39,7 +40,7 @@ class Backup(models.Model):
 
 class TaskModel(models.Model):
     lastrunned = models.DateTimeField(
-        "lastrunned", auto_now=False, auto_now_add=False)
+        "lastrunned", auto_now=False, auto_now_add=False, editable=False)
     taskname = models.CharField("taskname", max_length=50)
 
     def __str__(self) -> str:
