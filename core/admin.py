@@ -18,7 +18,7 @@ class BackupInline(admin.TabularInline):
 
 @admin.register(Repo)
 class RepoAdmin(ImportExportActionModelAdmin):
-    list_display = ('name', 'url', 'private')
+    list_display = ('name', 'url', 'private', 'comment',)
     list_filter = ('private', )
     search_fields = ('name',)
     inlines = [BackupInline, ]
