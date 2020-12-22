@@ -1,9 +1,9 @@
 import os
+import uuid
 
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from django.utils.text import slugify
 
 
 class Repo(models.Model):
@@ -23,8 +23,9 @@ class Repo(models.Model):
 
 
 def get_file_path(instance, filename):
-    name, ext = os.path.splitext(filename)
-    return os.path.join('files', slugify(name, allow_unicode=True) + ext)
+    fullname = filename.split('/')[-1]
+    name, ext = fullname.split('.', 1)
+    return os.path.join('files', f"{name}_{uuid.uuid4().hex[:12]}.{ext}")
 
 
 class Backup(models.Model):
