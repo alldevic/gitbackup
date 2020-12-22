@@ -19,20 +19,15 @@ class Command(BaseCommand):
         subprocess.run(["mkdir", working_dir])
 
         # git clone --mirror git@some.origin/reponame reponame.git
-        # cd reponame.git
-        # git bundle create reponame.bundle --all
-        # cp reponame.bundle dest_dir
-        # cd ..
+        # tar -czf reponame.tar.gz reponame.git
         # rm -rf reponame.git
         for repo in repos:
             repo_name = f"{repo.name}.git"
-            repo_bundle = f"{repo.name}.bundle"
+            repo_bundle = f"{repo.name}.tar.gz"
             subprocess.run(["git", "clone", "--mirror", repo.url, repo_name],
                            cwd=f"./{working_dir}")
-            subprocess.run(["git", "bundle", "create", repo_bundle, "--all"],
-                           cwd=f"./{working_dir}/{repo_name}")
-            subprocess.run(["cp", repo_bundle, ".."],
-                           cwd=f"./{working_dir}/{repo_name}")
+            subprocess.run(["tar", "-czf", repo_bundle, repo_name],
+                           cwd=f"./{working_dir}")
             subprocess.run(["rm", "-rf", f"./{repo_name}"],
                            cwd=f"./{working_dir}")
             f = File(open(f'/app/{working_dir}/{repo_bundle}', 'rb'))
