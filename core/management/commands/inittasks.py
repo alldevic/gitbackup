@@ -1,4 +1,6 @@
+from datetime import timedelta
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from django_q.models import Schedule
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -9,7 +11,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Create backup task
         try:
-            Schedule.objects.get(name='getbackup')
+            task = Schedule.objects.get(name='getbackup')
+            task.next_run = timezone.now()+timedelta(minutes=1)
+            task.save()
         except ObjectDoesNotExist:
             self.stdout.write(self.style.SUCCESS('Create getbackup'))
             Schedule.objects.create(
@@ -17,5 +21,6 @@ class Command(BaseCommand):
                 func='django.core.management.call_command',
                 args='"getbackup"',
                 schedule_type=Schedule.MINUTES,
-                minutes=5
+                minutes=5,
+                next_run=timezone.now()+timedelta(minutes=1)
             )
