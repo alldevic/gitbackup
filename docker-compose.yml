@@ -6,7 +6,6 @@ services:
     env_file: .env
     environment:
       - DEBUGPY=${DEBUGPY}
-    user: ${CURRENT_UID}
     build:
       context: .
       args:
@@ -16,9 +15,10 @@ services:
     volumes:
       - ./static:/app/static/
       - gitbackup_media:/app/media/
+      - gitbackup_db_data:/app/db_data/
       - .:/app/
     ports:
-      - 80:8000
+      - 8000:8000
     networks:
       # proxy:
       private_network:
@@ -45,31 +45,18 @@ services:
       private_network:
         ipv4_address: 172.16.0.5
 
-  postgres:
-    container_name: gitbackup_postgres
-    env_file: .env
-    image: postgres:12.3-alpine
-    restart: on-failure
-    volumes:
-      - gitbackup_db_data:/var/lib/postgresql/data
-    networks:
-      private_network:
-        ipv4_address: 172.16.0.6
-
   qcluster:
     image: gitbackup_backend
     container_name: gitbackup_qcluster
     env_file: .env
-    user: ${CURRENT_UID}
     volumes:
       - ./static:/app/static/
-      - ./media:/app/media/
+      - gitbackup_media:/app/media/
+      - gitbackup_db_data:/app/db_data/
       - .:/app/
     restart: on-failure
     entrypoint: python3
     command: ./manage.py qcluster
-    depends_on:
-      - postgres
     networks:
       private_network:
         ipv4_address: 172.16.0.7
@@ -84,8 +71,6 @@ services:
     restart: on-failure
     entrypoint: python3
     command: ./manage.py qcluster
-    depends_on:
-      - postgres
     networks:
       private_network:
         ipv4_address: 172.16.0.9

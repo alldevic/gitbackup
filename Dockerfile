@@ -3,10 +3,8 @@ ARG DEBUG=False
 ENV PYTHONUNBUFFERED 1
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
 RUN mkdir -p /app
-RUN apk add --no-cache python3 py3-pip postgresql-libs 
-RUN apk add --no-cache git
+RUN apk add --no-cache python3 py3-pip git
 RUN if [ ! -e /usr/bin/python ]; then ln -sf python3 /usr/bin/python ; fi 
-RUN apk add --no-cache --virtual .build-deps postgresql-dev python3-dev build-base
 RUN pip install --disable-pip-version-check --no-cache-dir --ignore-installed pipenv
 WORKDIR /app
 COPY Pipfile Pipfile.lock /app/
@@ -20,7 +18,6 @@ RUN if [[ "$DEBUG" == "TRUE" ]] || [[ "$DEBUG" == "True" ]] || [[ "$DEBUG" == "1
     pipenv install --system --deploy --ignore-pipfile; \
     pip uninstall pipenv virtualenv virtualenv-clone pip -y; \
     fi && \
-    apk --purge del .build-deps  && \
     rm -rf /root/.cache /root/.local \
     /etc/apk/ /usr/share/apk/ /lib/apk/ /sbin/apk \
     /media /usr/lib/terminfo /usr/share/terminfo \

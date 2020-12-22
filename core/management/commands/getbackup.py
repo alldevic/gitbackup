@@ -27,8 +27,7 @@ class Command(BaseCommand):
         for repo in repos:
             repo_name = f"{repo.name}.git"
             repo_bundle = f"{repo.name}.bundle"
-            subprocess.run(["git", "clone", "--mirror",
-                            "git@github.com:alldevic/nav_info.git", repo_name],
+            subprocess.run(["git", "clone", "--mirror", repo.url, repo_name],
                            cwd=f"./{working_dir}")
             subprocess.run(["git", "bundle", "create", repo_bundle, "--all"],
                            cwd=f"./{working_dir}/{repo_name}")
