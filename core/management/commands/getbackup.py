@@ -36,8 +36,12 @@ class Command(BaseCommand):
             # rm -rf reponame.git
             backup_list = []
             for repo in repos:
-                repo_name = f"{repo.name}.git"
-                repo_bundle = f"{repo.name}.tar.gz"
+                name = repo.url.split('/')[-1]
+                repo_name = name \
+                    if name.endswith(".git") \
+                    else f"{name}.git"
+
+                repo_bundle = f"{repo_name}.tar.gz"
                 repo_work_dir = f"./{working_dir}/{repo_name}"
                 if Path(repo_work_dir).is_dir():
                     remove(repo_work_dir)
