@@ -47,7 +47,11 @@ class BackupAdmin(admin.ModelAdmin):
 
 @admin.register(TaskModel)
 class TaskModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'taskname', 'lastrunned',)
+    list_display = ('id', 'taskname', 'lastrunned', 'successful')
+    list_filter = ('successful',)
     list_display_links = ('id', 'taskname',)
     search_fields = ('taskname',)
     inlines = [BackupInline, ]
+    readonly_fields = ('taskname', 'lastrunned',
+                       'successful', 'returncode',
+                       'args', 'stdout', 'stderr',)

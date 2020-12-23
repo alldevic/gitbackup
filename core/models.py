@@ -40,9 +40,18 @@ class Backup(models.Model):
 
 
 class TaskModel(models.Model):
-    lastrunned = models.DateTimeField(
-        "lastrunned", auto_now=False, auto_now_add=False, editable=False)
-    taskname = models.CharField("taskname", max_length=50)
+    lastrunned = models.DateTimeField("lastrunned",
+                                      auto_now=False,
+                                      auto_now_add=False,
+                                      editable=False)
+    taskname = models.CharField("taskname", max_length=50, editable=False)
+    successful = models.BooleanField("successful",
+                                     default=True,
+                                     editable=False)
+    returncode = models.IntegerField("returncode", default=0)
+    stdout = models.TextField(editable=False, null=True, blank=True)
+    stderr = models.TextField(editable=False, null=True, blank=True)
+    args = models.TextField(editable=False, null=True, blank=True)
 
     def __str__(self) -> str:
         format = "%Y/%m/%d %H:%M:%S"
