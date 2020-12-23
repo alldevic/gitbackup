@@ -10,6 +10,7 @@ from core.models import Backup, Repo, TaskModel
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from dulwich import porcelain
 
 
 class Command(BaseCommand):
@@ -48,12 +49,16 @@ class Command(BaseCommand):
                 if Path(repo_work_dir).is_dir():
                     remove(repo_work_dir)
                 Path(repo_work_dir).mkdir()
-                run(["git", "clone", "--mirror", repo.url, repo_name],
-                    task, repo_work_dir)
-                Path(Path(repo_work_dir).resolve() / repo_name) \
-                    .rename(Path(repo_work_dir).resolve()/".git")
-                run(["git", "init"], task, repo_work_dir)
-                run(["git", "checkout", "--"], task, repo_work_dir)
+                porcelain.clone(repo.url, bare=True)
+                porcelain.clone(repo.url, checkout=True)
+
+                # run(["git", "clone", "--mirror", repo.url, repo_name],
+                #     task, repo_work_dir)
+                # Path(Path(repo_work_dir).resolve() / repo_name) \
+                #     .rename(Path(repo_work_dir).resolve()/".git")
+
+                # run(["git", "init"], task, repo_work_dir)
+                # run(["git", "checkout", "--"], task, repo_work_dir)
                 make_tarfile(f"{working_dir}/{repo_bundle}", repo_work_dir)
                 remove(repo_work_dir)
 
