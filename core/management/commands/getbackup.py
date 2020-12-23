@@ -18,26 +18,38 @@ class Command(BaseCommand):
         working_dir = "tmp"
         subprocess.run(["mkdir", working_dir])
 
-        # git clone --mirror git@some.origin/reponame reponame.git
-        # tar -czf reponame.tar.gz reponame.git
-        # rm -rf reponame.git
-
+        task = None
         if repos:
             task = TaskModel.objects.create(
                 taskname="getcontainers",
                 lastrunned=start_date
             )
+        # mkdir repo.name
+        # cd repo.name
+        # git clone --mirror git@some.origin/reponame reponame.git
+        # mv reponame.git .git
+        # git init
+        # git checkout --
+        # cd ..
+        # tar -czf reponame.tar.gz reponame.git
+        # rm -rf reponame.git
 
         for repo in repos:
             repo_name = f"{repo.name}.git"
             repo_bundle = f"{repo.name}.tar.gz"
+            repo_work_dir = f"./{working_dir}/{repo_name}"
+            subprocess.run(["mkdir", repo_work_dir])
             subprocess.run(["git", "clone", "--mirror", repo.url, repo_name],
-                           cwd=f"./{working_dir}")
+                           cwd=repo_work_dir)
+            subprocess.run(["mv", repo_name, ".git"], cwd=repo_work_dir)
+            subprocess.run(["git", "init"], cwd=repo_work_dir)
+            subprocess.run(["git", "checkout", "--", ], cwd=repo_work_dir)
             subprocess.run(["tar", "-czf", repo_bundle, repo_name],
-                           cwd=f"./{working_dir}")
-            subprocess.run(["rm", "-rf", f"./{repo_name}"],
-                           cwd=f"./{working_dir}")
-            f = File(open(f'/app/{working_dir}/{repo_bundle}', 'rb'))
+                           cwd=working_dir)
+
+            subprocess.run(["rm", "-rf", repo_work_dir])
+
+            f = File(open(f"{working_dir}/{repo_bundle}", 'rb'))
             Backup.objects.create(repo=repo, file=f, task=task)
 
         subprocess.run(["rm", "-rf", working_dir])
