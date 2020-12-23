@@ -1,8 +1,10 @@
 import os
+import os.path
 import shutil
 import subprocess
+import tarfile
 import time
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from core.models import Backup, Repo, TaskModel
 from django.core.files import File
@@ -52,7 +54,7 @@ class Command(BaseCommand):
                     .rename(Path(repo_work_dir).resolve()/".git")
                 run(["git", "init"], task, repo_work_dir)
                 run(["git", "checkout", "--"], task, repo_work_dir)
-                run(["tar", "-czf", repo_bundle, repo_name], task, working_dir)
+                make_tarfile(f"{working_dir}/{repo_bundle}", repo_work_dir)
                 remove(repo_work_dir)
 
                 f = File(open(f"{working_dir}/{repo_bundle}", 'rb'))
@@ -98,3 +100,8 @@ def remove(path):
         shutil.rmtree(path)  # remove dir and all contains
     else:
         raise ValueError("file {} is not a file or dir.".format(path))
+
+
+def make_tarfile(output_filename, source_dir):
+    with tarfile.open(output_filename, "w:gz", format=tarfile.GNU_FORMAT) as tar:
+        tar.add(source_dir, arcname=PurePath(source_dir).name)
