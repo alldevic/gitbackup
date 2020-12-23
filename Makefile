@@ -30,8 +30,10 @@ migrations:
 	docker exec -it /$(BACKEND_CONTAINER) python3 manage.py makemigrations
 su:
 	docker exec -it /$(BACKEND_CONTAINER) python3 manage.py createsuperuser
-logs:
+logsb:
 	docker logs /$(BACKEND_CONTAINER) -f
+logs:
+	docker-compose logs -f
 volumes:
 	docker volume create gitbackup_db_data
 	docker volume create gitbackup_media
