@@ -60,7 +60,6 @@ class Command(BaseCommand):
                 f = File(open(f"{working_dir}/{repo_bundle}", 'rb'))
                 backup_list += [Backup(repo=repo, file=f, task=task)]
 
-            remove(working_dir)
             task.save()
 
             for backup in backup_list:
@@ -74,6 +73,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(ex.stderr))
 
         finally:
+            remove(working_dir)
             elapsed = time.time()
             self.stdout.write(self.style.SUCCESS(
                 "--- Total %s seconds ---" % (elapsed - start_time)))
@@ -102,6 +102,6 @@ def remove(path):
         raise ValueError("file {} is not a file or dir.".format(path))
 
 
-def make_tarfile(output_filename, source_dir):
-    with tarfile.open(output_filename, "w:gz", format=tarfile.GNU_FORMAT) as tar:
+def make_tarfile(out_file, source_dir):
+    with tarfile.open(out_file, "w:gz", format=tarfile.GNU_FORMAT) as tar:
         tar.add(source_dir, arcname=PurePath(source_dir).name)
