@@ -1,11 +1,13 @@
+import os
+import shutil
+import subprocess
 import time
+from pathlib import Path
 
+from core.models import Backup, Repo, TaskModel
+from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.core.files import File
-from core.models import (Repo, Backup, TaskModel)
-import subprocess
-from pathlib import Path
 
 
 class Command(BaseCommand):
@@ -18,123 +20,77 @@ class Command(BaseCommand):
 
         working_dir = "tmp"
         task = TaskModel(taskname="getcontainers", lastrunned=start_date)
-        if not Path(working_dir).is_dir():
-            res = subprocess.run(["mkdir", working_dir], capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
 
-        # mkdir repo.name
-        # cd repo.name
-        # git clone --mirror git@some.origin/reponame reponame.git
-        # mv reponame.git .git
-        # git init
-        # git checkout --
-        # cd ..
-        # tar -czf reponame.tar.gz reponame.git
-        # rm -rf reponame.git
-        backup_list = []
-        for repo in repos:
-            repo_name = f"{repo.name}.git"
-            repo_bundle = f"{repo.name}.tar.gz"
-            repo_work_dir = f"./{working_dir}/{repo_name}"
-            res = subprocess.run(["mkdir", repo_work_dir], capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
+        try:
+            if not Path(working_dir).is_dir():
+                Path(working_dir).mkdir()
 
-            res = subprocess.run(["git", "clone", "--mirror", repo.url, repo_name],
-                                 cwd=repo_work_dir, capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
+            # mkdir repo.name
+            # cd repo.name
+            # git clone --mirror git@some.origin/reponame reponame.git
+            # mv reponame.git .git
+            # git init
+            # git checkout --
+            # cd ..
+            # tar -czf reponame.tar.gz reponame.git
+            # rm -rf reponame.git
+            backup_list = []
+            for repo in repos:
+                repo_name = f"{repo.name}.git"
+                repo_bundle = f"{repo.name}.tar.gz"
+                repo_work_dir = f"./{working_dir}/{repo_name}"
+                if Path(repo_work_dir).is_dir():
+                    remove(repo_work_dir)
+                Path(repo_work_dir).mkdir()
+                run(["git", "clone", "--mirror", repo.url, repo_name],
+                    task, repo_work_dir)
+                Path(Path(repo_work_dir).resolve() / repo_name) \
+                    .rename(Path(repo_work_dir).resolve()/".git")
+                run(["git", "init"], task, repo_work_dir)
+                run(["git", "checkout", "--"], task, repo_work_dir)
+                run(["tar", "-czf", repo_bundle, repo_name], task, working_dir)
+                remove(repo_work_dir)
 
-            res = subprocess.run(["mv", repo_name, ".git"],
-                                 cwd=repo_work_dir, capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
+                f = File(open(f"{working_dir}/{repo_bundle}", 'rb'))
+                backup_list += [Backup(repo=repo, file=f, task=task)]
 
-            res = subprocess.run(["git", "init"],
-                                 cwd=repo_work_dir, capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
-
-            res = subprocess.run(["git", "checkout", "--", ],
-                                 cwd=repo_work_dir, capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
-
-            res = subprocess.run(["tar", "-czf", repo_bundle, repo_name],
-                                 cwd=working_dir, capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
-
-            res = subprocess.run(["rm", "-rf", repo_work_dir],
-                                 capture_output=True)
-            if res.returncode != 0:
-                task.successful = False
-                task.returncode = res.returncode
-                task.args = res.args
-                task.stdout = res.stdout
-                task.stderr = res.stderr
-                task.save()
-                return
-
-            f = File(open(f"{working_dir}/{repo_bundle}", 'rb'))
-            backup_list += [Backup(repo=repo, file=f, task=task)]
-
-        res = subprocess.run(["rm", "-rf", working_dir], capture_output=True)
-        if res.returncode != 0:
-            task.successful = False
-            task.returncode = res.returncode
-            task.args = res.args
-            task.stdout = res.stdout
-            task.stderr = res.stderr
+            remove(working_dir)
             task.save()
-            return
+
+            for backup in backup_list:
+                backup.save()
+
+        except subprocess.CalledProcessError as ex:
+            self.stdout.write(self.style.ERROR(ex))
+            if ex.stdout:
+                self.stdout.write(self.style.ERROR(ex.stdout))
+            if ex.stderr:
+                self.stdout.write(self.style.ERROR(ex.stderr))
+
+        finally:
+            elapsed = time.time()
+            self.stdout.write(self.style.SUCCESS(
+                "--- Total %s seconds ---" % (elapsed - start_time)))
+
+
+def run(args, task, cwd="."):
+    res = subprocess.run(args, cwd=cwd, capture_output=True)
+
+    if res.returncode != 0:
+        task.successful = False
+        task.returncode = res.returncode
+        task.args = res.args
+        task.stdout = res.stdout
+        task.stderr = res.stderr
         task.save()
+        raise subprocess.CalledProcessError(res.returncode, res.args)
 
-        for backup in backup_list:
-            backup.save()
 
-        elapsed = time.time()
-        self.stdout.write(self.style.SUCCESS(
-            "--- Total %s seconds ---" % (elapsed - start_time)))
+def remove(path):
+    """ param <path> could either be relative or absolute. """
+    if os.path.isfile(path) or os.path.islink(path):
+        os.remove(path)  # remove the file
+    elif os.path.isdir(path):
+        shutil.rmtree(path)  # remove dir and all contains
+    else:
+        raise ValueError("file {} is not a file or dir.".format(path))
