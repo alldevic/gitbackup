@@ -18,10 +18,19 @@ class BackupInline(admin.TabularInline):
 
 @admin.register(Repo)
 class RepoAdmin(ImportExportActionModelAdmin):
-    list_display = ('name', 'url', 'private', 'comment',)
+    list_display = ('name', 'url_link', 'private', 'comment',)
     list_filter = ('private', )
     search_fields = ('name',)
     inlines = [BackupInline, ]
+
+    def url_link(self, obj: Repo):
+        if obj.url:
+            return mark_safe(f'<a href="{obj.url}">{escape(obj.url.__str__())}</a>')
+        else:
+            return None
+
+    url_link.short_description = 'Url'
+    url_link.admin_order_field = 'url'
 
 
 @admin.register(Backup)
@@ -33,7 +42,8 @@ class BackupAdmin(admin.ModelAdmin):
     def repo_link(self, obj: Repo):
         if obj.repo:
             link = reverse("admin:core_repo_change", args=[obj.repo.id])
-            return mark_safe(f'<a href="{link}">{escape(obj.repo.__str__())}</a>')
+            domain = obj.repo.url.split('/')[2]
+            return mark_safe(f'<a href="{link}">{escape(obj.repo.__str__())}</a> (<a href="{obj.repo.url}">{domain}</a>)')
         else:
             return None
 
