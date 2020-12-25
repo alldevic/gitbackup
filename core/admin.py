@@ -1,9 +1,9 @@
 from django.contrib import admin
-from import_export.admin import ImportExportActionModelAdmin
-
-from core.models import Backup, Repo, TaskModel
 from django.urls import reverse
 from django.utils.html import escape, mark_safe
+from import_export.admin import ImportExportActionModelAdmin
+
+from core.models import (Backup, Repo, TaskModel)
 
 
 class BackupInline(admin.TabularInline):
@@ -18,14 +18,15 @@ class BackupInline(admin.TabularInline):
 
 @admin.register(Repo)
 class RepoAdmin(ImportExportActionModelAdmin):
-    list_display = ('name', 'url_link', 'private', 'comment',)
+    list_display = ('name', 'url_link', 'comment', 'private',)
     list_filter = ('private', )
     search_fields = ('name',)
     inlines = [BackupInline, ]
 
     def url_link(self, obj: Repo):
         if obj.url:
-            return mark_safe(f'<a href="{obj.url}">{escape(obj.url.__str__())}</a>')
+            return mark_safe(f'<a href="{obj.url}" target="_blank"> \
+                {escape(obj.url.__str__())}</a>')
         else:
             return None
 
@@ -43,7 +44,8 @@ class BackupAdmin(admin.ModelAdmin):
         if obj.repo:
             link = reverse("admin:core_repo_change", args=[obj.repo.id])
             domain = obj.repo.url.split('/')[2]
-            return mark_safe(f'<a href="{link}">{escape(obj.repo.__str__())}</a> (<a href="{obj.repo.url}">{domain}</a>)')
+            return mark_safe(f'<a href="{link}">{escape(obj.repo.__str__())} \
+            </a> (<a href="{obj.repo.url}" target="_blank">{domain}</a>)')
         else:
             return None
 
@@ -53,7 +55,8 @@ class BackupAdmin(admin.ModelAdmin):
     def task_link(self, obj: TaskModel):
         if obj.task:
             link = reverse("admin:core_taskmodel_change", args=[obj.task.id])
-            return mark_safe(f'<a href="{link}">{escape(obj.task.__str__())}</a>')
+            return mark_safe(f'<a href="{link}">\
+                {escape(obj.task.__str__())}</a>')
         else:
             return None
 
