@@ -38,6 +38,9 @@ class Command(BaseCommand):
             # rm -rf reponame.git
             backup_list = []
             for repo in repos:
+                self.print_succ(f"Begin {repo.name} - {repo.url}")
+                curr_time = time.time()
+
                 name = repo.url.split('/')[-1]
                 repo_name = name \
                     if name.endswith(".git") \
@@ -48,17 +51,27 @@ class Command(BaseCommand):
                 if Path(repo_work_dir).is_dir():
                     remove(repo_work_dir)
                 Path(repo_work_dir).mkdir()
+
+                self.print_info("Clonning...")
                 run(["git", "clone", "--mirror", repo.url, repo_name],
                     task, repo_work_dir)
+
                 Path(Path(repo_work_dir).resolve() / repo_name) \
                     .rename(Path(repo_work_dir).resolve()/".git")
+
+                self.print_info("Checkout...")
                 run(["git", "init"], task, repo_work_dir)
                 run(["git", "checkout", "--"], task, repo_work_dir)
+
+                self.print_info("Make arch...")
                 make_tarfile(f"{working_dir}/{repo_bundle}", repo_work_dir)
                 remove(repo_work_dir)
 
+                self.print_info("Create backup instance...")
                 f = File(open(f"{working_dir}/{repo_bundle}", 'rb'))
                 backup_list += [Backup(repo=repo, file=f, task=task)]
+
+                self.print_elapsed(curr_time, f"Elapsed {repo.name}")
 
             task.save()
 
@@ -74,9 +87,18 @@ class Command(BaseCommand):
 
         finally:
             remove(working_dir)
-            elapsed = time.time()
-            self.stdout.write(self.style.SUCCESS(
-                "--- Total %s seconds ---" % (elapsed - start_time)))
+            self.print_elapsed(start_time, "Total")
+
+    def print_succ(self, message):
+        self.stdout.write(self.style.SUCCESS(message))
+
+    def print_info(self, message):
+        self.stdout.write(message)
+
+    def print_elapsed(self, start_time, prefix="Elapsed"):
+        elapsed = time.time()
+        self.stdout.write(self.style.SUCCESS(
+            f"--- {prefix} {elapsed - start_time} seconds ---"))
 
 
 def run(args, task, cwd="."):
