@@ -24,8 +24,8 @@ class Repo(models.Model):
 
 def get_file_path(instance, filename):
     fullname = filename.split('/')[-1]
-    name, ext = fullname.split('.', 1)
-    return os.path.join('files', f"{name}_{uuid.uuid4().hex[:12]}.{ext}")
+    name, ext1, ext2 = fullname.split('.', 2)
+    return os.path.join('files', f"{name}.{ext1}_{uuid.uuid4().hex[:12]}.{ext2}")
 
 
 class Backup(models.Model):
