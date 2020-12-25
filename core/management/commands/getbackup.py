@@ -23,21 +23,13 @@ class Command(BaseCommand):
         working_dir = "tmp"
         task = TaskModel(taskname="getcontainers", lastrunned=start_date)
 
-        try:
-            if not Path(working_dir).is_dir():
-                Path(working_dir).mkdir()
+        if not Path(working_dir).is_dir():
+            Path(working_dir).mkdir()
 
-            # mkdir repo.name
-            # cd repo.name
-            # git clone --mirror git@some.origin/reponame reponame.git
-            # mv reponame.git .git
-            # git init
-            # git checkout --
-            # cd ..
-            # tar -czf reponame.tar.gz reponame.git
-            # rm -rf reponame.git
-            backup_list = []
-            for repo in repos:
+        backup_list = []
+
+        for repo in repos:
+            try:
                 self.print_succ(f"Begin {repo.name} - {repo.url}")
                 curr_time = time.time()
 
@@ -73,21 +65,23 @@ class Command(BaseCommand):
 
                 self.print_elapsed(curr_time, f"Elapsed {repo.name}")
 
-            task.save()
+            except subprocess.CalledProcessError as ex:
+                self.stdout.write(self.style.ERROR(
+                    ' '.join(map(str, ex.args))))
+                if ex.stdout:
+                    self.stdout.write(self.style.ERROR(
+                        ex.stdout.decode('utf8')))
+                if ex.stderr:
+                    self.stdout.write(self.style.ERROR(
+                        ex.stderr.decode('utf8')))
 
-            for backup in backup_list:
-                backup.save()
+        task.save()
 
-        except subprocess.CalledProcessError as ex:
-            self.stdout.write(self.style.ERROR(ex))
-            if ex.stdout:
-                self.stdout.write(self.style.ERROR(ex.stdout))
-            if ex.stderr:
-                self.stdout.write(self.style.ERROR(ex.stderr))
+        for backup in backup_list:
+            backup.save()
 
-        finally:
-            remove(working_dir)
-            self.print_elapsed(start_time, "Total")
+        remove(working_dir)
+        self.print_elapsed(start_time, "Total")
 
     def print_succ(self, message):
         self.stdout.write(self.style.SUCCESS(message))
@@ -107,9 +101,24 @@ def run(args, task, cwd="."):
     if res.returncode != 0:
         task.successful = False
         task.returncode = res.returncode
-        task.args = ' '.join(map(str, res.args))
-        task.stdout = res.stdout.decode("utf-8")
-        task.stderr = res.stderr.decode("utf-8")
+        if task.args:
+            task.args += '\n'
+            task.args += ' '.join(map(str, res.args))
+        else:
+            task.args = ' '.join(map(str, res.args))
+
+        if task.stdout:
+            task.stdout += '\n'
+            task.stdout += res.stdout.decode("utf-8")
+        else:
+            task.stdout = res.stdout.decode("utf-8")
+
+        if task.stderr:
+            task.stderr += '\n'
+            task.stderr += res.stderr.decode("utf-8")
+        else:
+            task.stderr = res.stderr.decode("utf-8")
+
         task.save()
         raise subprocess.CalledProcessError(res.returncode, res.args)
 
