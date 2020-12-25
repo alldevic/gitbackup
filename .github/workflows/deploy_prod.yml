@@ -1,0 +1,17 @@
+name: deploy to prod
+
+on:
+  push:
+    tags: '*'
+
+jobs:
+  deploy:
+    runs-on: prod
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create .env
+        run: cp /actions-runner/_config/.env ./.env
+      - name: Create volumes
+        run: make volumes
+      - name: Make up
+        run: make up
