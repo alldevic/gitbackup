@@ -31,18 +31,24 @@ class BackupAdmin(admin.ModelAdmin):
     search_fields = ('repo',)
 
     def repo_link(self, obj: Repo):
-        link = reverse("admin:core_repo_change", args=[obj.repo.id])
-        return mark_safe(f'<a href="{link}">{escape(obj.repo.__str__())}</a>')
+        if obj.repo:
+            link = reverse("admin:core_repo_change", args=[obj.repo.id])
+            return mark_safe(f'<a href="{link}">{escape(obj.repo.__str__())}</a>')
+        else:
+            return None
 
     repo_link.short_description = 'Repo'
     repo_link.admin_order_field = 'repo'  # Make row sortable
 
     def task_link(self, obj: TaskModel):
-        link = reverse("admin:core_taskmodel_change", args=[obj.task.id])
-        return mark_safe(f'<a href="{link}">{escape(obj.task.__str__())}</a>')
+        if obj.task:
+            link = reverse("admin:core_taskmodel_change", args=[obj.task.id])
+            return mark_safe(f'<a href="{link}">{escape(obj.task.__str__())}</a>')
+        else:
+            return None
 
-    task_link.short_description = 'Repo'
-    task_link.admin_order_field = 'repo'
+    task_link.short_description = 'Task'
+    task_link.admin_order_field = 'task'
 
 
 @admin.register(TaskModel)

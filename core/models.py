@@ -29,10 +29,10 @@ def get_file_path(instance, filename):
 
 
 class Backup(models.Model):
-    repo = models.ForeignKey("Repo", on_delete=models.DO_NOTHING)
+    repo = models.ForeignKey("Repo", on_delete=models.SET_NULL, null=True)
     file = models.FileField("backup", upload_to=get_file_path)
     created = models.DateTimeField("created", auto_now_add=True)
-    task = models.ForeignKey("TaskModel", on_delete=models.CASCADE)
+    task = models.ForeignKey("TaskModel", on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = "бэкап"
