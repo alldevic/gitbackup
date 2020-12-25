@@ -85,9 +85,9 @@ def run(args, task, cwd="."):
     if res.returncode != 0:
         task.successful = False
         task.returncode = res.returncode
-        task.args = res.args
-        task.stdout = res.stdout
-        task.stderr = res.stderr
+        task.args = ' '.join(map(str, res.args))
+        task.stdout = res.stdout.decode("utf-8")
+        task.stderr = res.stderr.decode("utf-8")
         task.save()
         raise subprocess.CalledProcessError(res.returncode, res.args)
 
