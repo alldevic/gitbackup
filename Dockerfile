@@ -3,8 +3,9 @@ ARG DEBUG=False
 ENV PYTHONUNBUFFERED 1
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
 RUN mkdir -p /app
-RUN apk add --no-cache python3 py3-pip git
-RUN if [ ! -e /usr/bin/python ]; then ln -sf python3 /usr/bin/python ; fi 
+RUN apk add --no-cache python3 py3-pip git postgresql-libs
+RUN if [ ! -e /usr/bin/python ]; then ln -sf python3 /usr/bin/python ; fi
+RUN apk add --no-cache --virtual .build-deps postgresql-dev python3-dev build-base
 RUN pip install --disable-pip-version-check --no-cache-dir --ignore-installed pipenv
 WORKDIR /app
 COPY Pipfile Pipfile.lock /app/

@@ -8,10 +8,10 @@ CURRENT_UID := $(shell id -u):$(shell id -g)
 export CURRENT_UID
 
 ifeq ($(DEBUG), True)
-	IMAGES := backend-dev qcluster-dev
+	IMAGES := backend-dev qcluster-dev postgres
 	BACKEND_CONTAINER = gitbackup_backend_dev
 else
-	IMAGES := backend qcluster
+	IMAGES := backend qcluster postgres
 	BACKEND_CONTAINER = gitbackup_backend
 endif
 
