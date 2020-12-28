@@ -16,7 +16,6 @@ services:
     volumes:
       - ./static:/app/static/
       - gitbackup_media:/app/media/
-      - gitbackup_db_data:/app/db_data/
       - .:/app/
     ports:
       - 8000:8000
@@ -53,6 +52,7 @@ services:
     restart: on-failure
     volumes:
       - gitbackup_db_data:/var/lib/postgresql/data
+      - gitbackup_db_backups:/var/backups
     networks:
       private_network:
         ipv4_address: 172.16.0.6
@@ -65,7 +65,6 @@ services:
     volumes:
       - ./static:/app/static/
       - gitbackup_media:/app/media/
-      - gitbackup_db_data:/app/db_data/
       - .:/app/
     restart: on-failure
     entrypoint: python3
@@ -101,4 +100,6 @@ volumes:
   gitbackup_db_data:
     external: true
   gitbackup_media:
+    external: true
+  gitbackup_db_backups:
     external: true

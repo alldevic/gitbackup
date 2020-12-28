@@ -37,3 +37,4 @@ logs:
 volumes:
 	docker volume create gitbackup_db_data
 	docker volume create gitbackup_media
+	docker volume create gitbackup_db_backups
