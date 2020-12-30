@@ -17,8 +17,6 @@ services:
       - ./static:/app/static/
       - gitbackup_media:/app/media/
       - .:/app/
-    ports:
-      - 8000:8000
     networks:
       # proxy:
       private_network:
@@ -88,6 +86,22 @@ services:
     networks:
       private_network:
         ipv4_address: 172.16.0.9
+
+  nginx:
+    container_name: gitbackup_nginx
+    image: nginx:1.19-alpine
+    restart: on-failure
+    ports:
+      - 8080:8000
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/app/static:ro
+      - gitbackup_media:/app/media/:ro
+    working_dir: /app/
+    networks:
+      private_network:
+        ipv4_address: 172.16.0.10
+      default:
 
 networks:
   private_network:

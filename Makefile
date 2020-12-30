@@ -11,7 +11,7 @@ ifeq ($(DEBUG), True)
 	IMAGES := backend-dev qcluster-dev postgres
 	BACKEND_CONTAINER = gitbackup_backend_dev
 else
-	IMAGES := backend qcluster postgres
+	IMAGES := backend qcluster postgres nginx
 	BACKEND_CONTAINER = gitbackup_backend
 endif
 
